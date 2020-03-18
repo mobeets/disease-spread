@@ -18,6 +18,7 @@ var showInfectionRadius = true;
 var neighborhoodSize;
 var maxDaysInfected; // # of frames
 var maxDaysImmune; // # of frames
+// var speedGain;
 
 function windowResized() {
   resizeCanvas(canvasWidth, canvasHeight);
@@ -25,11 +26,10 @@ function windowResized() {
 
 class Particle {
   constructor(){
-    this.x = random(0,width);
-    this.y = random(0,height-numberOfPeople);
+
+    this.position = createVector(random(0,width),random(0,height-numberOfPeople));
+    this.velocity = createVector(random(-1,1),random(-1,1));
     this.r = 8;
-    this.xSpeed = random(-1,1);
-    this.ySpeed = random(-1,1);
     this.isSick = false;
     this.daysSinceInfected = 0;
     this.daysImmune = 0;
@@ -51,25 +51,60 @@ class Particle {
         // fill(255);
       }
     }
-    circle(this.x,this.y,this.r);
+    circle(this.position.x,this.position.y,this.r);
 
     // show radius of influence
     if(showInfectionRadius && this.isSick) {
       strokeWeight(1);
       stroke(150,20,20);
       noFill();
-      circle(this.x,this.y,neighborhoodSize);
+      circle(this.position.x,this.position.y,neighborhoodSize);
     }
   }
 
+  // check for nearby particles and steers away
+  // separate(particles) {
+  //   var steer = createVector(0,0);
+  //   var count = 0;
+  //   // For every boid in the system, check if it's too close
+  //   for (var i = 0; i < particles.length; i++) {
+  //     var d = p5.Vector.dist(this.position,particles[i].position);
+  //     // If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)
+  //     if ((d > 0) && (d < separationDist)) {
+  //       // Calculate vector pointing away from neighbor
+  //       var diff = p5.Vector.sub(this.position,particles[i].position);
+  //       diff.normalize();
+  //       diff.div(d);        // Weight by distance
+  //       steer.add(diff);
+  //       count++;            // Keep track of how many
+  //     }
+  //   }
+  //   // Average -- divide by how many
+  //   if (count > 0) {
+  //     steer.div(count);
+  //   }
+
+  //   // As long as the vector is greater than 0
+  //   if (steer.mag() > 0) {
+  //     // Implement Reynolds: Steering = Desired - Velocity
+  //     steer.normalize();
+  //     steer.mult(this.maxspeed);
+  //     steer.sub(this.velocity);
+  //     steer.limit(this.maxforce);
+  //   }
+  //   return steer;
+  // }
+
 // setting the particle in motion.
   moveParticle() {
-    if(this.x < 0 || this.x > width)
-      this.xSpeed*=-1;
-    if(this.y < 0 || this.y > height-numberOfPeople)
-      this.ySpeed*=-1;
-    this.x+=this.xSpeed;
-    this.y+=this.ySpeed;
+    // check for wall collisions
+    if(this.position.x < 0 || this.position.x > width)
+      this.velocity.x*=-1;
+    if(this.position.y < 0 || this.position.y > height-numberOfPeople)
+      this.velocity.y*=-1;
+
+    // update position
+    this.position.add(this.velocity);
   }
 
   makeUnsick() {
@@ -109,7 +144,7 @@ class Particle {
 
     // spread to neighbors
     particles.forEach(element =>{
-      let dis = dist(this.x,this.y,element.x,element.y);
+      let dis = dist(this.position.x,this.position.y,element.position.x,element.position.y);
       if(element.daysImmune < 1 && dis < neighborhoodSize && random() < transmissionProb) {
         element.isSick = true;
       }
@@ -218,11 +253,11 @@ function addHandlers() {
 }
 
 function initControllableParams() {
-  $("#slider-neighborhood-size").val(5);
+  $("#slider-neighborhood-size").val(7);
   changeNeighborhoodSize();
   $("#slider-sickness-duration").val(3);
   changeSicknessDuration();
-  $("#slider-immunity-duration").val(2);
+  $("#slider-immunity-duration").val(0);
   changeImmunityDuration();
 }
 
