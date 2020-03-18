@@ -131,7 +131,7 @@
                 <button id="make-it-oscillate" type="button" class="btn btn-success btn-md">Make it oscillate</button>
               </div>
               <div class="btn-group mr-2" role="group" aria-label="Second group">
-                <button id="do-reset" type="button" class="btn btn-warning btn-md">Reset</button>
+                <button id="do-reset" type="button" class="btn btn-warning btn-md">Restart</button>
               </div>
             </div>
           </div>
@@ -140,7 +140,7 @@
         <div class="row">
             <div class="col-md-2"></div>
             <p class="col-md-8" style="text-align:left;"><b>More details:</b><br/>
-            &bull; Every frame, any healthy particle within the "contagion distance" of an infected particle will get the disease.<br/>&bull; The duration of the infection is set by "sickness duration."<br/>&bull; After the particle recovers, it will then be immune for the duration set by "immunity duration".<br/>&bull; Each particle tries to avoid other particles, where the strength of the aversion is set by "social distance".
+            &bull; Every frame, any healthy particle within the "contagion distance" of an infected particle will get the disease.<br/>&bull; The duration of the infection is set by "sickness duration."<br/>&bull; After the particle recovers, it will then be immune for the duration set by "immunity duration".<br/>&bull; Each particle tries to avoid nearby particles, where the strength of the aversion is set by "social distance".<br/><br/>The simulation above is completely deterministic given every particle's initial position and velocity. However, depending on the parameter settings, the number of infections over time can be extremely sensitive to the initial conditions. (Pressing "Restart" will restart the simulation using a random initialization.)
             </p>
           </div>
         </div>

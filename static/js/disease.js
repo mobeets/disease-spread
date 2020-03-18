@@ -2,13 +2,14 @@
 var canvas;
 var canvasWidth = 700;
 var canvasHeight = 400;
+var plotHeight = 80;
 let particles = []; // for containing particles
 let history = []; // for tracking # infected over time
 
 // fixed parameters
 var transmissionProb = 1;
-var daysBeforeContagious = 1;
-var numberOfPeople = canvasWidth/10;
+var daysBeforeContagious = 2;
+var numberOfPeople = canvasWidth/5;
 var showInfectionRadius = true;
 var separationDist = 40;
 var particleRadius = 8;
@@ -31,8 +32,10 @@ class Particle {
   constructor(){
 
     this.r = particleRadius;
-    this.position = createVector(random(particleRadius,width-particleRadius),random(particleRadius,height-particleRadius-numberOfPeople));
+    this.position = createVector(random(particleRadius,width-particleRadius),random(particleRadius,height-particleRadius-plotHeight));
     this.velocity = createVector(random(-1,1),random(-1,1));
+    // this.velocity = createVector(0,1);
+
     this.acceleration = createVector(0,0);
     this.isSick = false;
     this.daysSinceInfected = 0;
@@ -108,7 +111,7 @@ class Particle {
     // check for wall collisions
     if(this.position.x < this.r || this.position.x > width-this.r)
       this.velocity.x*=-1;
-    if(this.position.y < this.r || this.position.y > height-this.r-numberOfPeople)
+    if(this.position.y < this.r || this.position.y > height-this.r-plotHeight)
       this.velocity.y*=-1;
 
     // find acceleration based on avoidance
@@ -130,7 +133,7 @@ class Particle {
 
     // limit positions
     constrain(this.position.x, this.r+0.5, width-this.r-0.5);
-    constrain(this.position.y, this.r+0.5, height-this.r-numberOfPeople-0.5);
+    constrain(this.position.y, this.r+0.5, height-this.r-plotHeight-0.5);
   }
 
   makeUnsick() {
@@ -188,13 +191,13 @@ function plotSickCount(particles) {
   stroke(0,0,0);
   strokeWeight(2);
   fill(color(255,255,255));
-  rect(0, canvasHeight-numberOfPeople, canvasWidth, numberOfPeople-1);
+  rect(0, canvasHeight-plotHeight, canvasWidth, plotHeight-1);
 
   let count = 0;
   for(let i = 0;i<particles.length;i++) {
     if (particles[i].isSick) { count += 1; }
   }
-  history.push(count);
+  history.push(count*(plotHeight/numberOfPeople));
 
   beginShape(LINES);
   stroke(color(200,0,0));
@@ -217,7 +220,7 @@ function plotSickCount(particles) {
   fill(color(200,0,0));
   textAlign(LEFT);
   textSize(12);
-  translate(10, canvasHeight-numberOfPeople/4);
+  translate(10, canvasHeight-plotHeight/4);
   rotate(-PI/2);
   text("# sick", 0,0);
 }
@@ -269,11 +272,11 @@ function changeSocialDistance() {
 
 function makeItOscillate() {
   doReset();
-  $("#slider-neighborhood-size").val(10);
+  $("#slider-neighborhood-size").val(7);
   changeNeighborhoodSize();
-  $("#slider-sickness-duration").val(2);
+  $("#slider-sickness-duration").val(4);
   changeSicknessDuration();
-  $("#slider-immunity-duration").val(1);
+  $("#slider-immunity-duration").val(3);
   changeImmunityDuration();
   $("#slider-social-distance").val(0);
   changeSocialDistance();
