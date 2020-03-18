@@ -1,6 +1,6 @@
 // init
 var canvas;
-var canvasWidth = 700;
+var canvasWidth = 600;
 var canvasHeight = 400;
 let particles = []; // for containing particles
 let history = []; // for tracking # infected over time
@@ -10,8 +10,7 @@ var transmissionProb = 1;
 var daysBeforeContagious = 1;
 var numberOfPeople = canvasWidth/10;
 var showInfectionRadius = true;
-var separationDist = 40;
-var particleRadius = 8;
+var separationDist = 10;
 
 // controllable parameters
 // var neighborhoodSize = 50;
@@ -20,7 +19,6 @@ var particleRadius = 8;
 var neighborhoodSize;
 var maxDaysInfected; // # of frames
 var maxDaysImmune; // # of frames
-var separationStrength;
 // var speedGain;
 
 function windowResized() {
@@ -30,15 +28,15 @@ function windowResized() {
 class Particle {
   constructor(){
 
-    this.r = particleRadius;
-    this.position = createVector(random(particleRadius,width-particleRadius),random(particleRadius,height-particleRadius-numberOfPeople));
+    this.position = createVector(random(0,width),random(0,height-numberOfPeople));
     this.velocity = createVector(random(-1,1),random(-1,1));
     this.acceleration = createVector(0,0);
+    this.r = 8;
     this.isSick = false;
     this.daysSinceInfected = 0;
     this.daysImmune = 0;
 
-    this.maxspeed = 1.5;    // Maximum speed
+    this.maxspeed = 3;    // Maximum speed
     this.minforce = 0.01; // Minimum overall force
     this.maxforce = 0.05; // Maximum steering force
   }
@@ -100,15 +98,15 @@ class Particle {
       steer.sub(this.velocity);
       steer.limit(this.maxforce);
     }
-    return steer.mult(separationStrength);
+    return steer;
   }
 
 // setting the particle in motion.
   moveParticle(particles) {
     // check for wall collisions
-    if(this.position.x < this.r || this.position.x > width-this.r)
+    if(this.position.x < 0 || this.position.x > width)
       this.velocity.x*=-1;
-    if(this.position.y < this.r || this.position.y > height-this.r-numberOfPeople)
+    if(this.position.y < 0 || this.position.y > height-numberOfPeople)
       this.velocity.y*=-1;
 
     // find acceleration based on avoidance
@@ -116,8 +114,7 @@ class Particle {
     constrain(this.acceleration.limit, this.minforce, this.maxforce);
 
     // Update velocity, limiting speed
-    // this.velocity.normalize();
-    this.velocity.add(this.acceleration);
+    // this.velocity.add(this.acceleration);
 
     // Limit speed
     this.velocity.limit(this.maxspeed);
@@ -127,10 +124,6 @@ class Particle {
 
     // Reset accelertion to 0 each cycle
     this.acceleration.mult(0);
-
-    // limit positions
-    constrain(this.position.x, this.r+0.5, width-this.r-0.5);
-    constrain(this.position.y, this.r+0.5, height-this.r-numberOfPeople-0.5);
   }
 
   makeUnsick() {
@@ -170,7 +163,7 @@ class Particle {
 
     // spread to neighbors
     particles.forEach(element =>{
-      let dis = this.position.dist(element.position);
+      let dis = dist(this.position.x,this.position.y,element.position.x,element.position.y);
       if(element.daysImmune < 1 && dis < neighborhoodSize && random() < transmissionProb) {
         element.isSick = true;
       }
@@ -236,22 +229,28 @@ function draw() {
   background('white');
   for(let i = 0;i<particles.length;i++) {
     particles[i].createParticle();
-    particles[i].moveParticle(particles);//.slice(i));
-    particles[i].joinParticles(particles);//.slice(i));
+    particles[i].moveParticle(particles.slice(i));
+    particles[i].joinParticles(particles.slice(i));
   }
   plotSickCount(particles);
 }
 
+function makeItOscillate() {
+  doReset();
+  $("#slider-neighborhood-size").val(10);
+  changeNeighborhoodSize();
+  $("#slider-sickness-duration").val(2);
+  changeSicknessDuration();
+  $("#slider-immunity-duration").val(1);
+  changeImmunityDuration();
+}
+
 function doReset() {
   history = [];
-  particles = [];
-  for(let i = 0;i<numberOfPeople;i++){
-    particles.push(new Particle());
+  for(let i = 0;i<particles.length;i++) {
+    particles[i].makeUnsick();
+    particles[i].daysImmune = 0;
   }
-  // for(let i = 0;i<particles.length;i++) {
-  //   particles[i].makeUnsick();
-  //   particles[i].daysImmune = 0;
-  // }
 }
 
 function changeNeighborhoodSize() {
@@ -263,27 +262,11 @@ function changeSicknessDuration() {
 function changeImmunityDuration() {
   maxDaysImmune = 100*$("#slider-immunity-duration").val();
 }
-function changeSocialDistance() {
-  separationStrength = 1*$("#slider-social-distance").val();
-}
-
-function makeItOscillate() {
-  doReset();
-  $("#slider-neighborhood-size").val(10);
-  changeNeighborhoodSize();
-  $("#slider-sickness-duration").val(2);
-  changeSicknessDuration();
-  $("#slider-immunity-duration").val(1);
-  changeImmunityDuration();
-  $("#slider-social-distance").val(0);
-  changeSocialDistance();
-}
 
 function addHandlers() {
   $("#slider-neighborhood-size").click(changeNeighborhoodSize);
   $("#slider-sickness-duration").click(changeSicknessDuration);
   $("#slider-immunity-duration").click(changeImmunityDuration);
-  $("#slider-social-distance").click(changeSocialDistance);
   $("#make-it-oscillate").click(makeItOscillate);
   $("#do-reset").click(doReset);
 }
@@ -295,8 +278,6 @@ function initControllableParams() {
   changeSicknessDuration();
   $("#slider-immunity-duration").val(0);
   changeImmunityDuration();
-  $("#slider-social-distance").val(0);
-  changeSocialDistance();
 }
 
 $(document).ready(function() {
