@@ -1,15 +1,27 @@
+// init
 var canvas;
 var canvasWidth = 600;
 var canvasHeight = 400;
-var neighborhoodSize = 50;
+let particles = []; // for containing particles
+let history = []; // for tracking # infected over time
+
+// fixed parameters
 var transmissionProb = 1;
-var maxDaysInfected = 300; // # of frames
-var maxDaysImmune = 180; // # of frames
 var daysBeforeContagious = 1;
 var numberOfPeople = canvasWidth/10;
 var showInfectionRadius = true;
-let particles = []; // for containing particles
-let history = []; // for tracking # infected over time
+
+// controllable parameters
+// var neighborhoodSize = 50;
+// var maxDaysInfected = 300; // # of frames
+// var maxDaysImmune = 180; // # of frames
+var neighborhoodSize;
+var maxDaysInfected; // # of frames
+var maxDaysImmune; // # of frames
+
+function windowResized() {
+  resizeCanvas(canvasWidth, canvasHeight);
+}
 
 class Particle {
   constructor(){
@@ -105,11 +117,17 @@ class Particle {
   }
 }
 
+function mouseClicked() {
+  // randomly infect someone
+  let personIndex = floor(random(numberOfPeople));
+  particles[personIndex].isSick = true;
+}
+
 function plotSickCount(particles) {
   stroke(0,0,0);
   strokeWeight(2);
   fill(color(255,255,255));
-  rect(0, canvasHeight-numberOfPeople-1, canvasWidth, numberOfPeople-1);
+  rect(0, canvasHeight-numberOfPeople, canvasWidth, numberOfPeople-1);
 
   let count = 0;
   for(let i = 0;i<particles.length;i++) {
@@ -162,3 +180,53 @@ function draw() {
   }
   plotSickCount(particles);
 }
+
+function makeItOscillate() {
+  doReset();
+  $("#slider-neighborhood-size").val(10);
+  changeNeighborhoodSize();
+  $("#slider-sickness-duration").val(2);
+  changeSicknessDuration();
+  $("#slider-immunity-duration").val(1);
+  changeImmunityDuration();
+}
+
+function doReset() {
+  history = [];
+  for(let i = 0;i<particles.length;i++) {
+    particles[i].makeUnsick();
+    particles[i].daysImmune = 0;
+  }
+}
+
+function changeNeighborhoodSize() {
+  neighborhoodSize = 5*$("#slider-neighborhood-size").val();
+}
+function changeSicknessDuration() {
+  maxDaysInfected = 100*$("#slider-sickness-duration").val();
+}
+function changeImmunityDuration() {
+  maxDaysImmune = 100*$("#slider-immunity-duration").val();
+}
+
+function addHandlers() {
+  $("#slider-neighborhood-size").click(changeNeighborhoodSize);
+  $("#slider-sickness-duration").click(changeSicknessDuration);
+  $("#slider-immunity-duration").click(changeImmunityDuration);
+  $("#make-it-oscillate").click(makeItOscillate);
+  $("#do-reset").click(doReset);
+}
+
+function initControllableParams() {
+  $("#slider-neighborhood-size").val(5);
+  changeNeighborhoodSize();
+  $("#slider-sickness-duration").val(3);
+  changeSicknessDuration();
+  $("#slider-immunity-duration").val(2);
+  changeImmunityDuration();
+}
+
+$(document).ready(function() {
+  addHandlers();
+  initControllableParams();
+});
